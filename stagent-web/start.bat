@@ -1,49 +1,49 @@
 @echo off
-chcp 65001 >nul
+chcp 65001 >nul 2>&1
 echo ============================================
-echo    STAgent Web - 启动脚本
+echo    STAgent Web - Start Script
 echo ============================================
 echo.
 
-:: 检查 Python
-python --version >nul 2>&1
+:: Check Python
+D:\Anaconda\python.exe --version >nul 2>&1
 if errorlevel 1 (
-    echo [错误] 未找到 Python，请先安装 Python
+    echo [ERROR] Python not found. Please install Python first.
     pause
     exit /b 1
 )
 
-:: 检查 Node
+:: Check Node.js
 node --version >nul 2>&1
 if errorlevel 1 (
-    echo [错误] 未找到 Node.js，请先安装 Node.js
+    echo [ERROR] Node.js not found. Please install Node.js first.
     pause
     exit /b 1
 )
 
-:: 启动后端
-echo [1/2] 启动后端服务...
+:: Start Backend
+echo [1/2] Starting Backend...
 cd /d "%~dp0backend"
-start "STAgent-Backend" cmd /c "title STAgent Backend && pip install fastapi uvicorn python-multipart pyyaml -q && python -m uvicorn main:app --reload --port 8000"
+start "STAgent-Backend" cmd /k "title STAgent Backend && D:\Anaconda\python.exe -m uvicorn main:app --reload --port 8000"
 
-:: 等待后端启动
+:: Wait for backend
 timeout /t 3 /nobreak >nul
 
-:: 启动前端
-echo [2/2] 启动前端服务...
+:: Start Frontend
+echo [2/2] Starting Frontend...
 cd /d "%~dp0frontend"
-start "STAgent-Frontend" cmd /c "title STAgent Frontend && npm run dev"
+start "STAgent-Frontend" cmd /k "title STAgent Frontend && npm run dev"
 
 echo.
 echo ============================================
-echo    启动完成！
+echo    Startup Complete!
 echo ============================================
 echo.
-echo    后端: http://localhost:8000
-echo    前端: http://localhost:3000
-echo    API文档: http://localhost:8000/docs
+echo    Backend: http://localhost:8000
+echo    Frontend: http://localhost:3000
+echo    API Docs: http://localhost:8000/docs
 echo.
-echo    按任意键打开浏览器...
-pause >nul
+echo    Opening browser...
+timeout /t 2 /nobreak >nul
 
 start http://localhost:3000

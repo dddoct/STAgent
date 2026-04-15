@@ -31,7 +31,7 @@ npm run dev
 
 **3. 访问**
 
-打开浏览器访问: http://localhost:5173
+打开浏览器访问: http://localhost:3000
 
 ## 功能说明
 

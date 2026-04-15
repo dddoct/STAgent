@@ -61,7 +61,7 @@ cd stagent-web
 start.bat
 ```
 
-访问 http://localhost:5173
+访问 http://localhost:3000
 
 ### 方式二：命令行
 
@@ -219,16 +219,3 @@ cd stagent-web/frontend
 npm install
 ```
 
-## 代码统计
-
-```
-STAgent 核心:     2370+ 行
-STAgent Web 后端:  500+ 行
-STAgent Web 前端: 1490+ 行
---------------------
-总计:            4360+ 行
-```
-
-## 许可证
-
-MIT License

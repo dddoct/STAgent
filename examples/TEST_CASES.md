@@ -259,7 +259,7 @@ python -m stagent.cli --config examples/math/add.yaml
 
 ### Web 模式
 1. 启动服务: `cd stagent-web && start.bat`
-2. 访问: http://localhost:5173
+2. 访问: http://localhost:3000
 3. 选择配置文件并运行测试
 
 ## 测试覆盖范围
