@@ -1,0 +1,78 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+.env/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.bak
+
+# Project specific - results and logs
+results/
+*.log
+*.log.*
+
+# Web backend data (projects, reports, uploads)
+stagent-web/backend/data/
+
+# Test output files
+test_output.txt
+results/test.txt
+
+# Compiled binaries (keep .c source but not .exe)
+# *.exe
+# Note: Keep compiled test programs in examples/ for testing
+
+# Node
+stagent-web/frontend/node_modules/
+stagent-web/frontend/dist/
+stagent-web/frontend/.vite/
+stagent-web/frontend/build/
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+docs/软件测试课程设计性实验------软件测试智能体.md

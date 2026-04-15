@@ -1,0 +1,40 @@
+# STAgent 测试配置 - 排序程序
+# 程序说明: 读取数字序列(以空行或EOF结束)，输出排序结果
+
+target:
+  program: "./examples/sort.exe"
+  timeout: 5
+
+# 结构化输入
+wrapper:
+  enabled: true
+  input_schema:
+    - name: numbers
+      type: "list[int]"
+      count_fixed: 5
+      range_min: -100
+      range_max: 100
+      separator: "\n"       # 每行一个数字
+
+# 全局断言
+analysis:
+  compare_mode: "fuzzy"
+  default_assertions:
+    - type: "contains"
+      substring: "排序结果"
+    - type: "no_error"
+
+  deduplication:
+    enabled: true
+    strategy: "hash"
+
+  coverage:
+    enabled: false
+
+generation:
+  strategy: "wrapper"
+  count: 10
+
+output:
+  report_path: "./results/sort_report.json"
+  log_level: "INFO"

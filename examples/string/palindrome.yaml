@@ -1,0 +1,18 @@
+target:
+  program: "examples/string/palindrome.exe"
+  timeout: 5
+
+wrapper:
+  enabled: true
+  mode: "args"
+  schema:
+    - name: "text"
+      type: "string"
+      values: ["racecar", "hello", "madam", "test", "A"]
+
+assertions:
+  - type: "exit_code"
+    expected: [0, 1]
+  - type: "regex"
+    field: "stdout"
+    pattern: "^(YES|NO)\\n$"

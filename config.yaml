@@ -1,0 +1,17 @@
+target:
+  program: "./examples/calculator"
+  args: []
+  timeout: 10
+
+generation:
+  strategy: "random"
+  count: 20
+  max_input_size: 256
+
+analysis:
+  compare_mode: "exact"
+  report_format: "json"
+
+output:
+  report_path: "./results/report.json"
+  log_level: "INFO"

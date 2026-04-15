@@ -1,0 +1,20 @@
+target:
+  program: "examples/string/case.exe"
+  timeout: 5
+
+wrapper:
+  enabled: true
+  mode: "args"
+  schema:
+    - name: "mode"
+      type: "string"
+      values: ["upper", "lower", "invalid"]
+    - name: "text"
+      type: "string"
+      values: ["Hello", "WORLD", "TeSt123"]
+
+assertions:
+  - type: "exit_code"
+    expected: [0, 1]
+  - type: "no_error"
+    allow_stderr: true

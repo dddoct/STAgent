@@ -1,0 +1,21 @@
+target:
+  program: "examples/basic/compare.exe"
+  timeout: 5
+
+wrapper:
+  enabled: true
+  mode: "args"
+  schema:
+    - name: "num1"
+      type: "int"
+      range: [1, 10]
+    - name: "num2"
+      type: "int"
+      range: [1, 10]
+
+assertions:
+  - type: "exit_code"
+    expected: 0
+  - type: "regex"
+    field: "stdout"
+    pattern: "^(GREATER|LESS|EQUAL)\\n$"

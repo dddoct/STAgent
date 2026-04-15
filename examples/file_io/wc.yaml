@@ -1,0 +1,17 @@
+target:
+  program: "examples/file_io/wc.exe"
+  timeout: 5
+
+wrapper:
+  enabled: true
+  mode: "args"
+  schema:
+    - name: "filename"
+      type: "string"
+      values: ["examples/sort.c", "README.md", "nonexistent.txt"]
+
+assertions:
+  - type: "exit_code"
+    expected: [0, 2]
+  - type: "no_error"
+    allow_stderr: true

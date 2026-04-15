@@ -1,0 +1,21 @@
+target:
+  program: "examples/string/strlen.exe"
+  timeout: 5
+
+wrapper:
+  enabled: true
+  mode: "args"
+  schema:
+    - name: "text"
+      type: "string"
+      values: ["hello world", "test123", "ABC", ""]
+
+assertions:
+  - type: "exit_code"
+    expected: 0
+  - type: "contains"
+    field: "stdout"
+    value: "Total:"
+  - type: "contains"
+    field: "stdout"
+    value: "Letters:"

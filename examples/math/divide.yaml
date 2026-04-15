@@ -1,0 +1,20 @@
+target:
+  program: "examples/math/divide.exe"
+  timeout: 5
+
+wrapper:
+  enabled: true
+  mode: "args"
+  schema:
+    - name: "dividend"
+      type: "float"
+      range: [10.0, 100.0]
+    - name: "divisor"
+      type: "float"
+      range: [-5.0, 5.0]
+
+assertions:
+  - type: "exit_code"
+    expected: [0, 2]
+  - type: "no_error"
+    allow_stderr: true

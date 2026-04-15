@@ -1,0 +1,18 @@
+target:
+  program: "examples/error_handling/memory.exe"
+  timeout: 10
+
+wrapper:
+  enabled: true
+  mode: "args"
+  schema:
+    - name: "size_mb"
+      type: "int"
+      range: [-5, 1500]
+
+assertions:
+  - type: "exit_code"
+    expected: [0, 2, 3, 4]
+  - type: "regex"
+    field: "stderr"
+    pattern: ".*"

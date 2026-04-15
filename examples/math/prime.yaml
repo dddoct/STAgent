@@ -1,0 +1,18 @@
+target:
+  program: "examples/math/prime.exe"
+  timeout: 5
+
+wrapper:
+  enabled: true
+  mode: "args"
+  schema:
+    - name: "number"
+      type: "int"
+      range: [0, 100]
+
+assertions:
+  - type: "exit_code"
+    expected: [0, 1]
+  - type: "regex"
+    field: "stdout"
+    pattern: "^(YES|NO)\\n$"

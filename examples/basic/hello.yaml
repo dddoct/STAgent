@@ -1,0 +1,18 @@
+target:
+  program: "examples/basic/hello.exe"
+  timeout: 5
+
+wrapper:
+  enabled: true
+  mode: "args"
+  schema:
+    - name: "name"
+      type: "string"
+      values: ["World", "Alice", "Bob", ""]
+
+assertions:
+  - type: "contains"
+    field: "stdout"
+    value: "Hello"
+  - type: "exit_code"
+    expected: 0

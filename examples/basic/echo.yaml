@@ -1,0 +1,18 @@
+target:
+  program: "examples/basic/echo.exe"
+  timeout: 5
+
+wrapper:
+  enabled: true
+  mode: "args"
+  schema:
+    - name: "text"
+      type: "string"
+      values: ["hello", "test message", "123", ""]
+
+assertions:
+  - type: "exact"
+    field: "stdout"
+    expected: "{text}\n"
+  - type: "exit_code"
+    expected: 0

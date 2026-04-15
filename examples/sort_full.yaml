@@ -1,0 +1,83 @@
+# STAgent 完整配置示例 - 排序程序
+# 展示: Wrapper + 预设用例 + 多断言 + 去重 + 覆盖率
+
+target:
+  program: "./examples/sort.exe"
+  args: []
+  timeout: 10
+
+# 结构化输入定义
+wrapper:
+  enabled: true
+  input_schema:
+    - name: count
+      type: "int"
+      range_min: 1
+      range_max: 10
+
+    - name: numbers
+      type: "list[int]"
+      count_from: "count"
+      range_min: -100
+      range_max: 100
+
+# 预设测试套件 - 用例与断言绑定
+suite:
+  name: "sort_tests"
+  cases:
+    # 用例1: 空输入
+    - input: ""
+      assertions:
+        - type: "contains"
+          substring: "没有输入数字"
+
+    # 用例2: 单个数字
+    - input: "42"
+      assertions:
+        - type: "exact"
+          expected: "排序结果:\n42"
+        - type: "no_error"
+
+    # 用例3: 多个数字
+    - input: "5\n3\n8\n1\n9"
+      assertions:
+        - type: "regex"
+          pattern: "排序结果:\\n1\\n3\\n5\\n8\\n9"
+        - type: "no_error"
+        - type: "exit_code"
+          expected: 0
+
+    # 用例4: 负数排序
+    - input: "-5\n3\n-1\n0\n2"
+      assertions:
+        - type: "contains"
+          substring: "-5"
+        - type: "no_error"
+
+# 分析配置 - 断言、去重、覆盖率
+analysis:
+  compare_mode: "fuzzy"
+  report_format: "json"
+  default_assertions:
+    - type: "no_error"
+
+  # 用例去重
+  deduplication:
+    enabled: true
+    strategy: "hash"          # hash | equivalence | both
+    normalize_numbers: true   # 数字规范化
+    ignore_order: false       # 排序类程序可开启
+
+  # 覆盖率统计
+  coverage:
+    enabled: false            # 需要 gcc 环境
+    source_file: "./examples/sort.c"
+    compile_with_coverage: true
+
+generation:
+  strategy: "wrapper"
+  count: 50                   # 生成50个用例
+
+output:
+  report_path: "./results/sort_report.json"
+  log_level: "INFO"

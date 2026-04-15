@@ -1,0 +1,20 @@
+target:
+  program: "examples/file_io/write.exe"
+  timeout: 5
+
+wrapper:
+  enabled: true
+  mode: "args"
+  schema:
+    - name: "filename"
+      type: "string"
+      values: ["test_output.txt", "results/test.txt"]
+    - name: "content"
+      type: "string"
+      values: ["hello", "test data", "123"]
+
+assertions:
+  - type: "exit_code"
+    expected: [0, 2]
+  - type: "no_error"
+    allow_stderr: true

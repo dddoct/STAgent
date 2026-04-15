@@ -1,0 +1,42 @@
+# Wrapper 配置示例 - 计算器程序
+# 被测程序: examples/calculator.exe
+# 程序要求: 输入格式 "a op b"（用空格分隔），例如: 10 + 5
+
+target:
+  program: "./examples/calculator.exe"
+  args: []
+  timeout: 10
+
+# 启用 Wrapper
+wrapper:
+  enabled: true
+  input_schema:
+    # 计算器需要一行输入: "数字 运算符 数字"
+    - name: a
+      type: "int"
+      range_min: -1000
+      range_max: 1000
+      description: "第一个操作数"
+
+    - name: operator
+      type: "choice"
+      choices: ["+", "-", "*", "/", "x", "X"]
+      description: "运算符"
+
+    - name: b
+      type: "int"
+      range_min: -1000
+      range_max: 1000
+      # 注意: 计算器不支持除以 0，这里可以排除 0，但简单起见先随机
+
+generation:
+  strategy: "schema"
+  count: 20
+
+analysis:
+  compare_mode: "fuzzy"
+  report_format: "json"
+
+output:
+  report_path: "./results/calculator_report.json"
+  log_level: "INFO"

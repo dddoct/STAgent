@@ -1,0 +1,18 @@
+target:
+  program: "examples/math/factorial.exe"
+  timeout: 5
+
+wrapper:
+  enabled: true
+  mode: "args"
+  schema:
+    - name: "number"
+      type: "int"
+      range: [0, 20]
+
+assertions:
+  - type: "exit_code"
+    expected: 0
+  - type: "regex"
+    field: "stdout"
+    pattern: "^\\d+\\n$"
