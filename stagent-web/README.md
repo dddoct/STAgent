@@ -37,6 +37,7 @@ npm run dev
 
 | 模块 | 说明 |
 |------|------|
+| 登录注册 | JWT 认证，支持游客模式 |
 | 项目管理 | 创建、编辑、删除测试项目 |
 | 配置管理 | YAML 配置编辑器 + 可视化表单 |
 | 测试运行 | 实时进度、日志、暂停/停止 |
@@ -49,22 +50,26 @@ npm run dev
 stagent-web/
 ├── backend/
 │   ├── main.py              # FastAPI 后端主入口
+│   ├── auth.py             # JWT 认证（token/密码哈希）
+│   ├── users.py            # 用户管理（CRUD）
+│   ├── routes/
+│   │   └── auth_routes.py  # 认证 API
 │   ├── requirements.txt     # Python 依赖
 │   └── data/               # 数据存储
+│       ├── users.json      # 用户数据
 │       ├── projects/       # 项目数据
 │       ├── reports/        # 测试报告
 │       └── uploads/        # 上传文件
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── api/           # API 客户端
+│   │   ├── api/           # axios 客户端 + WebSocket
+│   │   ├── pages/
+│   │   │   └── LoginPage.jsx  # 登录/注册页
+│   │   ├── stores/
+│   │   │   └── authStore.js   # 认证状态
 │   │   ├── components/    # UI 组件
-│   │   │   ├── Config/    # 配置相关组件
-│   │   │   ├── Coverage/  # 覆盖率组件
-│   │   │   ├── Project/   # 项目管理组件
-│   │   │   └── Runner/    # 测试运行组件
-│   │   ├── pages/         # 页面
-│   │   └── stores/        # Zustand 状态管理
+│   │   └── App.jsx        # 路由 + 守卫
 │   ├── package.json
 │   └── vite.config.js
 │
@@ -73,6 +78,15 @@ stagent-web/
 ```
 
 ## API 接口
+
+### 认证
+
+| 方法 | 接口 | 说明 |
+|------|------|------|
+| POST | /api/auth/register | 用户注册 |
+| POST | /api/auth/login | 用户登录，返回 JWT token |
+| GET | /api/auth/me | 获取当前用户信息 |
+| POST | /api/auth/logout | 登出 |
 
 ### 项目管理
 
@@ -138,8 +152,8 @@ stagent-web/
 
 ## 技术栈
 
-- **后端**: FastAPI + Uvicorn + WebSocket
-- **前端**: React 18 + Vite + TailwindCSS + Zustand
+- **后端**: FastAPI + Uvicorn + WebSocket + JWT (python-jose + passlib)
+- **前端**: React 18 + Vite + TailwindCSS + Zustand + Axios
 
 ## 配置示例
 

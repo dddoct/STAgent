@@ -1,6 +1,6 @@
 # STAgent 前端实现步骤
 
-## 阶段一：后端 API（7步）
+## 阶段一：后端 API（8步）
 
 ### 1.1 创建 FastAPI 项目
 ```
@@ -8,13 +8,16 @@ stagent-web/
 ├── backend/
 │   ├── __init__.py
 │   ├── main.py           # FastAPI 入口
-│   ├── config.py         # CORS 配置
+│   ├── auth.py           # JWT 认证
+│   ├── users.py          # 用户管理
+│   ├── routes/
+│   │   └── auth_routes.py # 认证路由
 │   └── requirements.txt
 └── frontend/            # React 项目
 ```
 
 **任务**：
-- 安装依赖：`fastapi`, `uvicorn`, `python-multipart`
+- 安装依赖：`fastapi`, `uvicorn`, `python-multipart`, `python-jose[cryptography]`, `passlib[bcrypt]`
 - 创建 main.py 基础框架
 - 配置 CORS 允许前端访问
 
@@ -94,7 +97,24 @@ POST /api/upload/binary       # 上传可执行文件
 
 ---
 
-## 阶段二：前端基础（5步）
+### 1.8 添加认证路由
+```python
+# auth_routes.py
+POST /api/auth/register    # 注册
+POST /api/auth/login       # 登录
+GET  /api/auth/me         # 当前用户
+POST /api/auth/logout      # 登出
+```
+
+**任务**：
+- 实现用户注册（密码哈希存入 JSON）
+- 实现用户登录（验证密码，签发 JWT）
+- JWT Bearer Token 验证中间件
+- 登出接口（前端清除 token 即可）
+
+---
+
+## 阶段二：前端基础（6步）
 
 ### 2.1 初始化 React 项目
 ```bash
@@ -104,7 +124,7 @@ npm install
 ```
 
 **任务**：
-- 安装依赖：axios, react-router-dom, zustand
+- 安装依赖：axios, react-router-dom, zustand, lucide-react
 - 配置 TailwindCSS
 - 创建基础目录结构
 
@@ -123,9 +143,10 @@ src/components/Layout/
 
 ### 2.3 配置路由
 ```jsx
-/                   # 首页/项目列表
-/projects/:id       # 项目详情
-/projects/:id/run   # 运行测试
+/login              # 登录/注册页（公开）
+/                  # 首页/项目列表（需认证或游客）
+/projects/:id       # 项目详情（需认证或游客）
+/projects/:id/run   # 运行测试（需认证或游客）
 /reports/:id        # 查看报告
 /coverage/:id       # 覆盖率
 ```
@@ -133,32 +154,50 @@ src/components/Layout/
 **任务**：
 - 安装 react-router-dom
 - 配置路由表
-- 路由守卫
+- 路由守卫 ProtectedRoute（未登录跳转 /login）
+- 游客模式绕过守卫
 
 ### 2.4 创建状态管理
 ```javascript
 // src/stores/
-projectStore.js      # 项目状态
-runStore.js          # 运行状态
+authStore.js        # 认证状态（登录/注册/游客模式）
+projectStore.js     # 项目状态
+runStore.js         # 运行状态
 ```
 
 **任务**：
-- 定义状态结构
-- 定义 actions
-- 持久化配置
+- 定义状态结构（user, token, isAuthenticated, isGuest）
+- 定义 actions（login, register, logout, enterGuest）
+- 使用 zustand/persist 持久化到 localStorage
 
 ### 2.5 创建 API 客户端
 ```javascript
 // src/api/
-client.js            # REST API
+client.js            # REST API + axios 拦截器
 websocket.js         # WebSocket
 ```
 
 **任务**：
-- 封装 axios
-- 请求拦截器
-- 错误处理
+- 封装 axios，baseURL = '/api'
+- 请求拦截器附加 Authorization: Bearer token
+- 401 响应拦截器自动登出并跳转 /login
 - WebSocket 连接管理
+
+### 2.6 创建登录页面
+```javascript
+// src/pages/LoginPage.jsx
+- 登录/注册 Tab 切换
+- 登录表单（用户名 + 密码）
+- 注册表单（用户名 + 邮箱 + 密码）
+- 游客模式入口
+- 错误提示
+```
+
+**任务**：
+- 使用 authStore.login/register
+- 正确处理 axios 错误（err.response?.data?.detail）
+- 登录成功后 navigate('/')
+- 游客模式调用 enterGuest() 直接进入
 
 ---
 
@@ -407,15 +446,15 @@ Week 4: 覆盖率 + 完善
 ## 快速启动命令
 
 ```bash
-# 后端
-cd backend
+# 后端（启动目录：stagent-web/backend）
+cd stagent-web/backend
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
+python -m uvicorn main:app --reload --port 8000
 
-# 前端
-cd frontend
+# 前端（启动目录：stagent-web/frontend）
+cd stagent-web/frontend
 npm install
-npm run dev
+npm run dev        # 访问 http://localhost:3000
 ```
 
 ---
@@ -428,6 +467,8 @@ fastapi>=0.100.0
 uvicorn[standard]>=0.23.0
 python-multipart>=0.0.6
 pyyaml>=6.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
 ```
 
 ### 前端 (Node.js)

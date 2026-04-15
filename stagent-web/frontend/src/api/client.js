@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useAuthStore } from '../stores/authStore'
 
 const API_BASE = '/api'
 
@@ -10,9 +11,16 @@ const client = axios.create({
   }
 })
 
-// 请求拦截器
+// 请求拦截器 - 添加认证 Token
 client.interceptors.request.use(
-  config => config,
+  config => {
+    // 从 Zustand store 获取 token
+    const token = useAuthStore.getState()?.token
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
   error => Promise.reject(error)
 )
 
@@ -22,9 +30,31 @@ client.interceptors.response.use(
   error => {
     const message = error.response?.data?.detail || error.message
     console.error('API Error:', message)
+
+    // 401 未授权，跳转登录
+    if (error.response?.status === 401) {
+      const { logout } = useAuthStore.getState()
+      logout()
+      window.location.href = '/login'
+    }
+
     return Promise.reject(error)
   }
 )
+
+// ============== 认证 API ==============
+
+export const authApi = {
+  login: (username, password) =>
+    client.post('/auth/login', { username, password }),
+
+  register: (username, email, password) =>
+    client.post('/auth/register', { username, email, password }),
+
+  me: () => client.get('/auth/me'),
+
+  logout: () => client.post('/auth/logout')
+}
 
 // ============== 项目 API ==============
 

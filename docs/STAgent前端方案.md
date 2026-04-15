@@ -35,6 +35,13 @@
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+### 模块0：登录认证
+- 登录/注册表单（Tab 切换）
+- JWT Token 自动管理
+- 游客模式（无需登录直接访问）
+- 登录状态持久化（localStorage）
+- 401 自动跳转登录
+
 ### 模块1：配置管理
 - YAML 配置编辑器（ Monaco Editor）
 - Wrapper 可视化配置
@@ -184,17 +191,33 @@
 
 ### 4.2 API 设计
 
+**认证 API**
+
+| 接口 | 方法 | 说明 |
+|------|------|------|
+| `POST /api/auth/register` | POST | 用户注册 |
+| `POST /api/auth/login` | POST | 用户登录，返回 JWT token |
+| `GET /api/auth/me` | GET | 获取当前用户信息 |
+| `POST /api/auth/logout` | POST | 登出 |
+
+**业务 API**
+
 | 接口 | 方法 | 说明 |
 |------|------|------|
 | `GET /api/projects` | GET | 获取项目列表 |
 | `POST /api/projects` | POST | 创建项目 |
-| `GET /api/projects/{id}/config` | GET | 获取配置 |
-| `PUT /api/projects/{id}/config` | PUT | 更新配置 |
+| `GET /api/projects/{id}` | GET | 获取项目详情 |
+| `PUT /api/projects/{id}` | PUT | 更新项目 |
+| `DELETE /api/projects/{id}` | DELETE | 删除项目 |
 | `POST /api/run` | POST | 运行测试 |
-| `GET /api/run/status` | GET | 实时状态 |
-| `POST /api/run/stop` | POST | 停止测试 |
+| `GET /api/run/{task_id}` | GET | 获取任务状态 |
+| `POST /api/run/{task_id}/stop` | POST | 停止测试 |
+| `GET /api/run/{task_id}/results` | GET | 获取测试结果 |
 | `GET /api/reports/{id}` | GET | 获取报告 |
+| `GET /api/reports/task/{task_id}` | GET | 根据任务ID获取报告 |
 | `GET /api/coverage/{id}` | GET | 获取覆盖率 |
+| `POST /api/upload/source` | POST | 上传源码 |
+| `POST /api/upload/binary` | POST | 上传可执行文件 |
 
 ### 4.3 WebSocket 实时推送
 
@@ -221,44 +244,40 @@ ws.on('result', (data) => {
 
 ```
 stagent-web/
-├── public/
-│   └── index.html
-├── src/
-│   ├── main.jsx
-│   ├── App.jsx
-│   ├── api/
-│   │   ├── client.js          # API 客户端
-│   │   └── websocket.js       # WebSocket 客户端
-│   ├── components/
-│   │   ├── Layout/
-│   │   │   ├── Sidebar.jsx
-│   │   │   └── Header.jsx
-│   │   ├── Config/
-│   │   │   ├── ConfigEditor.jsx
-│   │   │   ├── WrapperBuilder.jsx
-│   │   │   └── AssertionBuilder.jsx
-│   │   ├── Runner/
-│   │   │   ├── TestRunner.jsx
-│   │   │   ├── ProgressBar.jsx
-│   │   │   └── LogViewer.jsx
-│   │   ├── Report/
-│   │   │   ├── ReportTable.jsx
-│   │   │   └── ReportDetail.jsx
-│   │   └── Coverage/
-│   │       ├── CoverageDashboard.jsx
-│   │       └── SourceViewer.jsx
-│   ├── pages/
-│   │   ├── ConfigPage.jsx
-│   │   ├── RunPage.jsx
-│   │   ├── ReportPage.jsx
-│   │   └── CoveragePage.jsx
-│   ├── stores/
-│   │   ├── projectStore.js
-│   │   └── runStore.js
-│   └── styles/
-│       └── index.css
-├── package.json
-└── vite.config.js
+├── backend/                    # FastAPI 后端
+│   ├── main.py
+│   ├── auth.py                # JWT 认证
+│   ├── users.py               # 用户管理
+│   ├── routes/
+│   │   └── auth_routes.py     # 认证 API
+│   ├── data/                  # JSON 数据存储
+│   └── requirements.txt
+├── frontend/                   # React 前端
+│   ├── src/
+│   │   ├── main.jsx
+│   │   ├── App.jsx            # 路由 + 守卫
+│   │   ├── api/
+│   │   │   ├── client.js      # axios + 拦截器
+│   │   │   └── websocket.js   # WebSocket
+│   │   ├── pages/
+│   │   │   ├── LoginPage.jsx  # 登录/注册
+│   │   │   ├── ProjectsPage.jsx
+│   │   │   ├── ConfigPage.jsx
+│   │   │   ├── RunPage.jsx
+│   │   │   ├── ReportPage.jsx
+│   │   │   └── CoveragePage.jsx
+│   │   ├── components/
+│   │   │   ├── Layout/         # AppLayout, Header, Sidebar
+│   │   │   ├── Config/         # WrapperBuilder, AssertionBuilder
+│   │   │   ├── Runner/         # ProgressBar, LogViewer
+│   │   │   ├── Report/         # ReportTable
+│   │   │   └── Coverage/       # CoverageDashboard
+│   │   └── stores/
+│   │       ├── authStore.js    # 认证状态
+│   │       ├── projectStore.js
+│   │       └── runStore.js
+│   └── package.json
+└── package.json                # workspaces root
 ```
 
 ---

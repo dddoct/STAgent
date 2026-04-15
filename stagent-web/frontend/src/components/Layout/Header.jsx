@@ -1,13 +1,20 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { Play, FileText, BarChart3, HelpCircle } from 'lucide-react'
+import { Play, HelpCircle, LogOut, User } from 'lucide-react'
+import { useAuthStore } from '../../stores/authStore'
 import { useProjectStore } from '../../stores/projectStore'
 
 export default function Header() {
   const navigate = useNavigate()
   const params = useParams()
   const { currentProject } = useProjectStore()
+  const { user, logout } = useAuthStore()
 
   const projectId = params.id
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
@@ -40,6 +47,21 @@ export default function Header() {
               配置
             </button>
           </>
+        )}
+
+        {/* 用户信息 */}
+        {user && (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full">
+            <User className="w-4 h-4 text-gray-500" />
+            <span className="text-sm text-gray-600">{user.username}</span>
+            <button
+              onClick={handleLogout}
+              className="ml-2 text-gray-400 hover:text-red-500"
+              title="退出登录"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
         )}
 
         <button

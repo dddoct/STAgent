@@ -7,7 +7,7 @@ export default function ReportPage() {
   const { id } = useParams()
   const [report, setReport] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('all') // all, passed, failed, error
+  const [filter, setFilter] = useState('all')
   const [expandedId, setExpandedId] = useState(null)
 
   useEffect(() => {
@@ -16,11 +16,9 @@ export default function ReportPage() {
 
   const loadReport = async () => {
     try {
-      // 尝试通过项目ID获取最新报告
       const data = await reportApi.getByTask(id)
       setReport(data)
     } catch (e) {
-      // 如果失败，使用模拟数据
       setReport({
         report_id: 'demo',
         project_name: '示例项目',
@@ -40,7 +38,7 @@ export default function ReportPage() {
           reason: i < 16 ? '通过' : i < 19 ? '断言失败' : '执行错误',
           duration: Math.random() * 0.5 + 0.1,
           stdout: '排序结果:\n1\n3\n5\n8\n9',
-          stderr: i === 19 ? '段错误 (核心已转储)' : '',
+          stderr: i === 19 ? '段错误' : '',
           assertions: {
             total: 2,
             passed: i < 16 ? 2 : 1,
@@ -77,7 +75,6 @@ export default function ReportPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      {/* 顶部操作栏 */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">测试报告</h1>
         <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50">
@@ -86,7 +83,6 @@ export default function ReportPage() {
         </button>
       </div>
 
-      {/* 摘要卡片 */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow p-4">
           <div className="text-sm text-gray-500 mb-1">总用例数</div>
@@ -108,7 +104,6 @@ export default function ReportPage() {
         </div>
       </div>
 
-      {/* 结果表格 */}
       <div className="bg-white rounded-lg shadow">
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="font-semibold">测试结果</h2>
@@ -127,7 +122,6 @@ export default function ReportPage() {
           </div>
         </div>
 
-        {/* 表头 */}
         <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 text-sm font-medium text-gray-600">
           <div className="col-span-1">状态</div>
           <div className="col-span-2">用例ID</div>
@@ -136,7 +130,6 @@ export default function ReportPage() {
           <div className="col-span-5">原因</div>
         </div>
 
-        {/* 数据行 */}
         <div className="divide-y">
           {filteredResults.map((result, i) => (
             <div key={i}>
@@ -169,7 +162,6 @@ export default function ReportPage() {
                 </div>
               </div>
 
-              {/* 展开详情 */}
               {expandedId === i && (
                 <div className="px-4 py-4 bg-gray-50 border-t">
                   <div className="grid grid-cols-2 gap-4">

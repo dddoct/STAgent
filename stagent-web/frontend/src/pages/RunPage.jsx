@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Play, Square, Pause, CheckCircle, XCircle, AlertCircle, FileText } from 'lucide-react'
+import { Play, Square, CheckCircle, XCircle, AlertCircle, FileText } from 'lucide-react'
 import { useProjectStore } from '../stores/projectStore'
 import { useRunStore } from '../stores/runStore'
 
@@ -34,7 +34,6 @@ export default function RunPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      {/* 顶部操作栏 */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">运行测试</h1>
 
@@ -69,7 +68,6 @@ export default function RunPage() {
         </div>
       </div>
 
-      {/* 进度显示 */}
       {status !== 'idle' && (
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
@@ -90,7 +88,6 @@ export default function RunPage() {
             </span>
           </div>
 
-          {/* 进度条 */}
           <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
             <div
               className="bg-primary-600 h-3 rounded-full transition-all duration-300"
@@ -98,7 +95,6 @@ export default function RunPage() {
             />
           </div>
 
-          {/* 统计 */}
           <div className="grid grid-cols-4 gap-4">
             <div className="flex items-center gap-2">
               <CheckCircle className="w-5 h-5 text-green-500" />
@@ -131,9 +127,7 @@ export default function RunPage() {
         </div>
       )}
 
-      {/* 日志和结果 */}
       <div className="grid grid-cols-2 gap-6">
-        {/* 日志 */}
         <div className="bg-white rounded-lg shadow">
           <div className="flex items-center justify-between p-4 border-b">
             <h2 className="font-semibold">实时日志</h2>
@@ -175,7 +169,6 @@ export default function RunPage() {
           </div>
         </div>
 
-        {/* 结果列表 */}
         <div className="bg-white rounded-lg shadow">
           <div className="flex items-center justify-between p-4 border-b">
             <h2 className="font-semibold">执行结果</h2>

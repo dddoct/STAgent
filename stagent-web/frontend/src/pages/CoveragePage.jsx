@@ -16,7 +16,6 @@ export default function CoveragePage() {
       const data = await coverageApi.get(id)
       setCoverage(data)
     } catch (e) {
-      // 模拟数据
       setCoverage({
         program: 'sort.exe',
         source_file: './examples/sort.c',
@@ -51,7 +50,6 @@ export default function CoveragePage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      {/* 顶部 */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">覆盖率报告</h1>
         <button className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50">
@@ -59,7 +57,6 @@ export default function CoveragePage() {
         </button>
       </div>
 
-      {/* 程序信息 */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <div className="text-sm text-gray-500">
           <span className="font-medium">程序:</span> {coverage.program}
@@ -72,9 +69,7 @@ export default function CoveragePage() {
         </div>
       </div>
 
-      {/* 覆盖率仪表盘 */}
       <div className="grid grid-cols-3 gap-6 mb-6">
-        {/* 行覆盖 */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-sm font-medium text-gray-500 mb-4">行覆盖</h3>
           <div className="flex items-center justify-center">
@@ -105,7 +100,6 @@ export default function CoveragePage() {
           </div>
         </div>
 
-        {/* 分支覆盖 */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-sm font-medium text-gray-500 mb-4">分支覆盖</h3>
           <div className="flex items-center justify-center">
@@ -136,7 +130,6 @@ export default function CoveragePage() {
           </div>
         </div>
 
-        {/* 函数覆盖 */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-sm font-medium text-gray-500 mb-4">函数覆盖</h3>
           <div className="space-y-3">
@@ -158,7 +151,6 @@ export default function CoveragePage() {
         </div>
       </div>
 
-      {/* 未覆盖行号 */}
       <div className="bg-white rounded-lg shadow">
         <div className="p-4 border-b">
           <h2 className="font-semibold">未覆盖行号</h2>

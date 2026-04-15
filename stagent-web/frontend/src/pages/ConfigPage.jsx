@@ -10,18 +10,17 @@ export default function ConfigPage() {
   const { currentProject, fetchProject, updateProject, loading } = useProjectStore()
 
   const [config, setConfig] = useState('')
-  const [viewMode, setViewMode] = useState('form') // form | yaml
+  const [viewMode, setViewMode] = useState('form')
   const [hasChanges, setHasChanges] = useState(false)
   const [saveStatus, setSaveStatus] = useState('')
 
-  // 表单状态
   const [form, setForm] = useState({
     target: { program: '', args: [], timeout: 10 },
-    wrapper: { enabled: false, input_schema: [] },
-    generation: { strategy: 'random', count: 10 },
+    wrapper: { enabled: false, mode: 'args', input_schema: [] },
+    generation: { strategy: 'wrapper', count: 10 },
     analysis: {
       compare_mode: 'exact',
-      default_assertions: [{ type: 'no_error' }],
+      default_assertions: [{ type: 'exit_code', expected: 0 }],
       deduplication: { enabled: true },
       coverage: { enabled: false }
     },
@@ -59,7 +58,7 @@ export default function ConfigPage() {
 
   const handleFieldChange = (path, value) => {
     setForm(prev => {
-      const newForm = { ...prev }
+      const newForm = JSON.parse(JSON.stringify(prev))
       const keys = path.split('.')
       let obj = newForm
       for (let i = 0; i < keys.length - 1; i++) {
@@ -77,14 +76,13 @@ export default function ConfigPage() {
       const parsed = YAML.parse(value)
       setForm(parsed)
     } catch (e) {
-      // 解析错误，忽略
+      // 解析错误
     }
     setHasChanges(true)
   }
 
   return (
     <div className="max-w-6xl mx-auto">
-      {/* 顶部操作栏 */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold">配置</h1>
@@ -97,7 +95,6 @@ export default function ConfigPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* 视图切换 */}
           <div className="flex border rounded overflow-hidden">
             <button
               onClick={() => setViewMode('form')}
@@ -134,11 +131,9 @@ export default function ConfigPage() {
         </div>
       </div>
 
-      {/* 配置内容 */}
       <div className="bg-white rounded-lg shadow">
         {viewMode === 'form' ? (
           <div className="p-6 space-y-8">
-            {/* Target 配置 */}
             <section>
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <ChevronRight className="w-5 h-5 text-primary-500" />
@@ -167,7 +162,6 @@ export default function ConfigPage() {
               </div>
             </section>
 
-            {/* Wrapper 配置 */}
             <section>
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <ChevronRight className="w-5 h-5 text-primary-500" />
@@ -187,7 +181,17 @@ export default function ConfigPage() {
 
               {form.wrapper?.enabled && (
                 <div className="bg-gray-50 rounded p-4">
-                  <p className="text-sm text-gray-500 mb-2">input_schema（可视化编辑器开发中）</p>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">输入模式</label>
+                    <select
+                      value={form.wrapper?.mode || 'args'}
+                      onChange={(e) => handleFieldChange('wrapper.mode', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary-500"
+                    >
+                      <option value="args">命令行参数</option>
+                      <option value="stdin">标准输入 (stdin)</option>
+                    </select>
+                  </div>
                   <pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto">
                     {JSON.stringify(form.wrapper?.input_schema || [], null, 2)}
                   </pre>
@@ -195,7 +199,6 @@ export default function ConfigPage() {
               )}
             </section>
 
-            {/* Generation 配置 */}
             <section>
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <ChevronRight className="w-5 h-5 text-primary-500" />
@@ -205,13 +208,13 @@ export default function ConfigPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">策略</label>
                   <select
-                    value={form.generation?.strategy || 'random'}
+                    value={form.generation?.strategy || 'wrapper'}
                     onChange={(e) => handleFieldChange('generation.strategy', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary-500"
                   >
+                    <option value="wrapper">结构化输入</option>
                     <option value="random">随机生成</option>
                     <option value="boundary">边界值</option>
-                    <option value="wrapper">结构化输入</option>
                   </select>
                 </div>
                 <div>
@@ -226,7 +229,6 @@ export default function ConfigPage() {
               </div>
             </section>
 
-            {/* Analysis 配置 */}
             <section>
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <ChevronRight className="w-5 h-5 text-primary-500" />

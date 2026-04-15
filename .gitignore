@@ -71,6 +71,9 @@ ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 
+# Claude Code
+.claude/
+
 # Temporary files
 *.tmp
 *.temp

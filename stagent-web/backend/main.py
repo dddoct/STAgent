@@ -14,12 +14,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-# 添加 STAgent 核心路径
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+# 添加项目根路径，使 backend 和 stagent 都可导入
+ROOT = Path(__file__).parent.parent          # stagent-web/
+sys.path.insert(0, str(ROOT))                # stagent-web/  -> from routes import
+sys.path.insert(0, str(ROOT.parent))         # STAgent/      -> from stagent import
 
 from stagent.config import load_config, Config
 from stagent.orchestrator import TestOrchestrator
 from stagent.models import TestResult, ExecutionStatus
+
+# 导入认证路由（直接导入模块，避免 routes/__init__.py 循环导入问题）
+from backend.routes.auth_routes import router as auth_router
 
 # ============== 日志配置 ==============
 
@@ -33,6 +38,9 @@ app = FastAPI(
     description="软件测试智能体 Web 服务",
     version="0.1.0"
 )
+
+# 注册路由
+app.include_router(auth_router)
 
 # ============== CORS 配置 ==============
 
@@ -399,7 +407,7 @@ async def run_test(task_id: str, project_id: str, config_overrides: Optional[Dic
             program_path = Path(config.target.program)
             if not program_path.is_absolute():
                 # 相对于项目根目录
-                project_root = Path(__file__).parent.parent.parent
+                project_root = ROOT.parent
                 program_path = project_root / program_path
             config.target.program = str(program_path.resolve())
 
@@ -579,7 +587,7 @@ async def run_test(task_id: str, project_id: str, config_overrides: Optional[Dic
 def get_default_config() -> str:
     """获取默认配置模板"""
     # 项目根目录
-    project_root = Path(__file__).parent.parent.parent
+    project_root = ROOT.parent
     examples_dir = project_root / "examples"
     results_dir = project_root / "results"
     results_dir.mkdir(exist_ok=True)

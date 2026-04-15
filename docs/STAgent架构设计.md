@@ -268,7 +268,7 @@ STAgent/
 └── requirements.txt
 ```
 
-## 七、支持的测试场景
+## 九、支持的测试场景
 
 | 场景 | 配置方式 |
 |------|----------|
@@ -281,7 +281,7 @@ STAgent/
 | 用例去重 | `analysis.deduplication.enabled: true` |
 | 覆盖率统计 | `analysis.coverage.enabled: true` |
 
-## 八、报告输出
+## 十、报告输出
 
 ```json
 {
@@ -310,4 +310,102 @@ STAgent/
     }
   ]
 }
+```
+
+## 七、Web 前端架构 (stagent-web/)
+
+### 7.1 技术栈
+
+| 技术 | 选择 | 用途 |
+|------|------|------|
+| 前端框架 | React 18 + Vite | UI 构建 |
+| UI 样式 | TailwindCSS + lucide-react | 样式 + 图标 |
+| 状态管理 | Zustand + persist | 全局状态 + 本地持久化 |
+| HTTP 客户端 | Axios | API 调用 + 拦截器 |
+| 后端框架 | FastAPI | REST API + WebSocket |
+| 认证 | JWT (python-jose + passlib) | 用户登录 |
+
+### 7.2 目录结构
+
+```
+stagent-web/
+├── backend/                    # FastAPI 后端
+│   ├── main.py                 # 应用入口
+│   ├── auth.py                 # JWT 认证（token 创建/验证、密码哈希）
+│   ├── users.py                # 用户管理（CRUD、JSON 持久化）
+│   ├── routes/
+│   │   └── auth_routes.py      # 认证 API（登录/注册/登出）
+│   ├── data/                   # 数据存储
+│   │   ├── users.json          # 用户数据
+│   │   └── projects/           # 项目数据
+│   └── requirements.txt
+└── frontend/                   # React 前端
+    ├── src/
+    │   ├── main.jsx
+    │   ├── App.jsx             # 路由 + 守卫
+    │   ├── api/
+    │   │   ├── client.js       # axios 实例 + 拦截器
+    │   │   └── websocket.js    # WebSocket 连接
+    │   ├── pages/
+    │   │   ├── LoginPage.jsx   # 登录/注册页
+    │   │   ├── ProjectsPage.jsx # 项目列表页
+    │   │   ├── ConfigPage.jsx  # 配置编辑页
+    │   │   ├── RunPage.jsx     # 测试运行页
+    │   │   ├── ReportPage.jsx  # 报告查看页
+    │   │   └── CoveragePage.jsx # 覆盖率页
+    │   ├── components/Layout/   # AppLayout、Header、Sidebar
+    │   ├── stores/
+    │   │   ├── authStore.js    # 认证状态（Zustand + localStorage）
+    │   │   ├── projectStore.js # 项目状态
+    │   │   └── runStore.js     # 运行状态
+    │   └── index.css
+    └── package.json
+```
+
+### 7.3 认证流程
+
+```
+用户注册/登录
+     │
+     ▼
+ POST /api/auth/login
+     │
+     ▼
+ Backend 验证密码 → 生成 JWT token → 返回 { access_token, user }
+     │
+     ▼
+ Frontend 存入 Zustand（persist 到 localStorage）
+     │
+     ▼
+ 后续请求 Axios 拦截器自动附加 Authorization: Bearer {token}
+     │
+     ▼
+ 401 时自动登出 → 跳转登录页
+```
+
+### 7.4 路由守卫
+
+```
+/login         → LoginPage（公开）
+/              → ProjectsPage（需认证或游客）
+/projects/:id  → ConfigPage（需认证或游客）
+/projects/:id/run → RunPage（需认证或游客）
+/reports/:id   → ReportPage
+/coverage/:id  → CoveragePage
+```
+
+游客模式下 `isAuthenticated=true`、`isGuest=true`，无需注册登录即可访问所有功能。
+
+### 7.5 启动方式
+
+```bash
+# 后端
+cd stagent-web/backend
+pip install -r requirements.txt
+python -m uvicorn main:app --reload --port 8000
+
+# 前端
+cd stagent-web/frontend
+npm install
+npm run dev        # 访问 http://localhost:3000
 ```
