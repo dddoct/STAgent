@@ -19,14 +19,14 @@
 STAgent/
 ├── stagent/                 # 核心引擎 (Python)
 │   ├── cli.py               # 命令行入口
-│   ├── config.py           # 配置加载
-│   ├── executor.py         # 测试执行
+│   ├── config.py            # 配置加载
+│   ├── executor.py          # 测试执行
 │   ├── analyzer.py          # 结果分析
 │   ├── assertions.py        # 断言系统
 │   ├── wrapper.py           # 结构化输入适配器
-│   ├── dedup.py            # 用例去重
-│   ├── coverage.py         # 覆盖率统计
-│   ├── orchestrator.py     # 编排引擎
+│   ├── dedup.py             # 用例去重
+│   ├── coverage.py          # 覆盖率统计
+│   ├── orchestrator.py      # 编排引擎
 │   └── generators/          # 用例生成器
 │       ├── base.py
 │       ├── random_gen.py
@@ -34,22 +34,34 @@ STAgent/
 │       ├── schema_gen.py
 │       └── factory.py
 │
-├── stagent-web/            # Web 界面
-│   ├── backend/            # FastAPI 后端
-│   ├── frontend/           # React 前端
-│   ├── start.bat           # Windows 启动脚本
-│   └── README.md           # Web 使用说明
+├── stagent-web/             # Web 界面
+│   ├── backend/             # FastAPI 后端
+│   │   ├── main.py          # API 入口
+│   │   ├── auth.py          # JWT 认证
+│   │   ├── users.py         # 用户管理
+│   │   ├── routes/          # API 路由
+│   │   └── data/            # 项目/报告/用户数据
+│   ├── frontend/            # React 前端
+│   │   ├── src/
+│   │   │   ├── api/         # REST/WebSocket 客户端
+│   │   │   ├── components/  # 布局和业务组件
+│   │   │   ├── pages/       # 页面
+│   │   │   └── stores/      # Zustand 状态
+│   │   └── package.json
+│   └── start.bat            # Windows 启动脚本
 │
-├── examples/               # 测试示例（19个程序，5大类型）
-│   ├── basic/              # 基础测试 (4个)
-│   ├── math/               # 数学计算 (6个)
-│   ├── string/             # 字符串处理 (4个)
-│   ├── file_io/            # 文件IO (3个)
-│   ├── error_handling/     # 错误处理 (2个)
-│   └── TEST_CASES.md       # 测试用例详细说明
+├── examples/                # 测试示例（19个程序，5大类型）
+│   ├── basic/
+│   ├── math/
+│   ├── string/
+│   ├── file_io/
+│   ├── error_handling/
+│   └── TEST_CASES.md
 │
-└── docs/                   # 文档
-    └── STAgent架构设计.md
+└── docs/                    # 设计与实现文档
+    ├── STAgent架构设计.md
+    ├── STAgent前端方案.md
+    └── STAgent前端实现步骤.md
 ```
 
 ## 快速开始
@@ -214,51 +226,6 @@ STAgent Web 支持用户注册登录，所有项目数据与用户绑定。
 | 用户登录 | JWT Bearer Token，24小时有效期 |
 | 游客模式 | 无需登录，直接访问所有功能 |
 | 持久化 | 用户数据存储于 `stagent-web/backend/data/users.json` |
-
-## 项目结构
-
-```
-STAgent/
-├── stagent/                 # 核心引擎 (Python)
-│   ├── cli.py               # 命令行入口
-│   ├── config.py           # 配置加载
-│   ├── executor.py         # 测试执行
-│   ├── analyzer.py          # 结果分析
-│   ├── assertions.py        # 断言系统
-│   ├── wrapper.py           # 结构化输入适配器
-│   ├── dedup.py            # 用例去重
-│   ├── coverage.py         # 覆盖率统计
-│   ├── orchestrator.py     # 编排引擎
-│   └── generators/          # 用例生成器
-│
-├── stagent-web/            # Web 界面
-│   ├── backend/            # FastAPI 后端
-│   │   ├── main.py         # 应用入口
-│   │   ├── auth.py         # JWT 认证（token/密码哈希）
-│   │   ├── users.py        # 用户管理（CRUD）
-│   │   ├── routes/
-│   │   │   └── auth_routes.py  # 认证 API
-│   │   └── data/           # JSON 数据存储
-│   └── frontend/           # React 前端
-│       ├── src/
-│       │   ├── api/        # axios 客户端 + WebSocket
-│       │   ├── pages/      # 登录/项目/配置/运行/报告/覆盖
-│       │   └── stores/     # authStore / projectStore / runStore
-│       └── package.json
-│
-├── examples/               # 测试示例（19个程序，5大类型）
-│   ├── basic/              # 基础测试 (4个)
-│   ├── math/               # 数学计算 (6个)
-│   ├── string/             # 字符串处理 (4个)
-│   ├── file_io/            # 文件IO (3个)
-│   ├── error_handling/     # 错误处理 (2个)
-│   └── TEST_CASES.md       # 测试用例详细说明
-│
-└── docs/                   # 文档
-    ├── STAgent架构设计.md
-    ├── STAgent前端方案.md
-    └── STAgent前端实现步骤.md
-```
 
 ## 依赖安装
 

@@ -7,9 +7,9 @@
 | 技术 | 选择 | 理由 |
 |------|------|------|
 | 框架 | React 18 | 生态丰富，组件化成熟 |
-| UI库 | TailwindCSS + HeadlessUI | 快速开发，样式灵活 |
+| UI库 | TailwindCSS + lucide-react | 轻量样式和图标 |
 | 状态管理 | Zustand | 轻量，够用 |
-| 图表 | Recharts | 覆盖率可视化 |
+| 图表 | 原生 SVG / CSS | 覆盖率可视化 |
 | 构建 | Vite | 快速启动 |
 
 ### 备选方案
@@ -245,39 +245,26 @@ ws.on('result', (data) => {
 ```
 stagent-web/
 ├── backend/                    # FastAPI 后端
-│   ├── main.py
-│   ├── auth.py                # JWT 认证
-│   ├── users.py               # 用户管理
+│   ├── main.py                 # API 入口
+│   ├── auth.py                 # JWT 认证
+│   ├── users.py                # 用户管理
 │   ├── routes/
-│   │   └── auth_routes.py     # 认证 API
-│   ├── data/                  # JSON 数据存储
+│   │   └── auth_routes.py      # 认证 API
+│   ├── data/                   # JSON 数据存储
 │   └── requirements.txt
 ├── frontend/                   # React 前端
 │   ├── src/
 │   │   ├── main.jsx
-│   │   ├── App.jsx            # 路由 + 守卫
+│   │   ├── App.jsx             # 路由 + 守卫
 │   │   ├── api/
-│   │   │   ├── client.js      # axios + 拦截器
-│   │   │   └── websocket.js   # WebSocket
-│   │   ├── pages/
-│   │   │   ├── LoginPage.jsx  # 登录/注册
-│   │   │   ├── ProjectsPage.jsx
-│   │   │   ├── ConfigPage.jsx
-│   │   │   ├── RunPage.jsx
-│   │   │   ├── ReportPage.jsx
-│   │   │   └── CoveragePage.jsx
-│   │   ├── components/
-│   │   │   ├── Layout/         # AppLayout, Header, Sidebar
-│   │   │   ├── Config/         # WrapperBuilder, AssertionBuilder
-│   │   │   ├── Runner/         # ProgressBar, LogViewer
-│   │   │   ├── Report/         # ReportTable
-│   │   │   └── Coverage/       # CoverageDashboard
-│   │   └── stores/
-│   │       ├── authStore.js    # 认证状态
-│   │       ├── projectStore.js
-│   │       └── runStore.js
-│   └── package.json
-└── package.json                # workspaces root
+│   │   │   ├── client.js       # axios + 拦截器
+│   │   │   └── websocket.js    # WebSocket
+│   │   ├── pages/              # Login/Projects/Config/Run/Report/Coverage/Help
+│   │   ├── components/Layout/   # AppLayout, Header, Sidebar
+│   │   └── stores/             # authStore, projectStore, runStore
+│   ├── package.json
+│   └── vite.config.js
+└── start.bat                   # Windows 一键启动
 ```
 
 ---
@@ -285,19 +272,18 @@ stagent-web/
 ## 六、快速启动
 
 ```bash
-# 克隆项目
-git clone https://github.com/xxx/stagent-web.git
-cd stagent-web
+# 后端
+cd stagent-web/backend
+pip install -r requirements.txt
+python -m uvicorn main:app --reload --port 8000
 
-# 安装依赖
+# 前端
+cd stagent-web/frontend
 npm install
-
-# 开发模式
 npm run dev
-
-# 构建
-npm run build
 ```
+
+访问 http://localhost:3000
 
 ---
 

@@ -64,7 +64,7 @@ WS /api/ws/{task_id}        # 实时日志
 ```python
 # 接口
 GET /api/reports/{report_id}  # 报告详情
-GET /api/reports/latest       # 最新报告
+GET /api/reports/task/{task_id} # 根据任务ID获取报告
 ```
 
 **任务**：
@@ -218,11 +218,11 @@ websocket.js         # WebSocket
 
 ### 3.2 配置编辑器页
 ```
-/projects/:id/config
+/projects/:id
 ├── target 配置
 ├── wrapper 配置
-├── suite 配置
-├── assertions 配置
+├── generation 配置
+├── analysis 配置
 └── 保存/运行按钮
 ```
 
@@ -478,11 +478,10 @@ passlib[bcrypt]>=1.7.4
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.14.0",
-    "axios": "^1.4.0",
-    "zustand": "^4.4.0",
-    "recharts": "^2.7.0",
-    "@headlessui/react": "^1.7.0",
-    "lucide-react": "^0.263.0"
+    "axios": "^1.6.0",
+    "zustand": "^4.5.0",
+    "lucide-react": "^0.344.0",
+    "yaml": "^2.3.0"
   }
 }
 ```
