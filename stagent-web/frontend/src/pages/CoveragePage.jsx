@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { RefreshCw } from 'lucide-react'
 import { coverageApi } from '../api/client'
 
 export default function CoveragePage() {
@@ -12,6 +13,7 @@ export default function CoveragePage() {
   }, [id])
 
   const loadCoverage = async () => {
+    setLoading(true)
     try {
       const data = await coverageApi.get(id)
       setCoverage(data)
@@ -41,138 +43,86 @@ export default function CoveragePage() {
   }
 
   if (!coverage) {
-    return (
-      <div className="text-center text-gray-500 py-12">
-        覆盖率报告不存在
-      </div>
-    )
+    return <div className="doc-panel text-center text-slate-500 py-12">覆盖率报告不存在 Coverage report not found</div>
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">覆盖率报告</h1>
-        <button className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50">
-          刷新
+    <div className="space-y-6">
+      <div className="doc-toolbar">
+        <div>
+          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Coverage</div>
+          <h1 className="text-2xl font-semibold text-slate-950 mt-1">覆盖率报告 Coverage Report</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            <span className="font-medium">Program:</span> {coverage.program}
+            {coverage.source_file && <span> · <span className="font-medium">Source:</span> {coverage.source_file}</span>}
+          </p>
+        </div>
+        <button onClick={loadCoverage} className="doc-btn-secondary">
+          <RefreshCw className="w-4 h-4" />
+          Refresh
         </button>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <div className="text-sm text-gray-500">
-          <span className="font-medium">程序:</span> {coverage.program}
-          {coverage.source_file && (
-            <>
-              <span className="mx-2">|</span>
-              <span className="font-medium">源码:</span> {coverage.source_file}
-            </>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-6 mb-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-500 mb-4">行覆盖</h3>
-          <div className="flex items-center justify-center">
-            <div className="relative w-32 h-32">
-              <svg className="w-32 h-32 transform -rotate-90">
-                <circle
-                  cx="64" cy="64" r="56"
-                  stroke="#e5e7eb"
-                  strokeWidth="12"
-                  fill="none"
-                />
-                <circle
-                  cx="64" cy="64" r="56"
-                  stroke="#3b82f6"
-                  strokeWidth="12"
-                  fill="none"
-                  strokeDasharray={`${coverage.lines.percent * 3.52} 352`}
-                  strokeLinecap="round"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold">{coverage.lines.percent}%</span>
-                <span className="text-xs text-gray-500">
-                  {coverage.lines.covered}/{coverage.lines.total}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-500 mb-4">分支覆盖</h3>
-          <div className="flex items-center justify-center">
-            <div className="relative w-32 h-32">
-              <svg className="w-32 h-32 transform -rotate-90">
-                <circle
-                  cx="64" cy="64" r="56"
-                  stroke="#e5e7eb"
-                  strokeWidth="12"
-                  fill="none"
-                />
-                <circle
-                  cx="64" cy="64" r="56"
-                  stroke="#f59e0b"
-                  strokeWidth="12"
-                  fill="none"
-                  strokeDasharray={`${coverage.branches.percent * 3.52} 352`}
-                  strokeLinecap="round"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold">{coverage.branches.percent}%</span>
-                <span className="text-xs text-gray-500">
-                  {coverage.branches.covered}/{coverage.branches.total}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-500 mb-4">函数覆盖</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <CoverageRing title="行覆盖 Line" percent={coverage.lines.percent} covered={coverage.lines.covered} total={coverage.lines.total} color="#2563eb" />
+        <CoverageRing title="分支覆盖 Branch" percent={coverage.branches.percent} covered={coverage.branches.covered} total={coverage.branches.total} color="#d97706" />
+        <div className="doc-panel">
+          <h3 className="text-sm font-medium text-slate-500 mb-4">函数覆盖 Functions</h3>
           <div className="space-y-3">
-            {coverage.functions?.map((func, i) => (
-              <div key={i}>
-                <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="font-medium">{func.name}</span>
-                  <span className="text-gray-500">{func.lines}</span>
+            {coverage.functions?.map((func, i) => {
+              const percent = parseFloat(func.lines.split('(')[1]) || parseFloat(func.lines) || 0
+              return (
+                <div key={i}>
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <span className="font-medium text-slate-800">{func.name}</span>
+                    <span className="text-slate-500">{func.lines}</span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-2">
+                    <div className="bg-green-500 h-2 rounded-full" style={{ width: `${percent}%` }} />
+                  </div>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-green-500 h-2 rounded-full"
-                    style={{ width: parseFloat(func.lines) + '%' }}
-                  />
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-4 border-b">
-          <h2 className="font-semibold">未覆盖行号</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            共 {coverage.uncovered_lines?.length || 0} 行未覆盖
-          </p>
+      <div className="doc-card overflow-hidden">
+        <div className="p-4 border-b border-slate-200">
+          <h2 className="font-semibold text-slate-950">未覆盖行号 Uncovered lines</h2>
+          <p className="text-sm text-slate-500 mt-1">共 {coverage.uncovered_lines?.length || 0} 行未覆盖</p>
         </div>
 
         <div className="p-4">
           <div className="flex flex-wrap gap-2">
             {coverage.uncovered_lines?.map((line, i) => (
-              <span
-                key={i}
-                className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm font-mono hover:bg-red-200 cursor-pointer"
-                title={`跳转到第 ${line} 行`}
-              >
+              <span key={i} className="px-3 py-1 bg-red-50 text-red-700 border border-red-100 rounded-lg text-sm font-mono hover:bg-red-100 cursor-pointer" title={`跳转到第 ${line} 行`}>
                 {line}
               </span>
             ))}
             {(!coverage.uncovered_lines || coverage.uncovered_lines.length === 0) && (
-              <span className="text-green-600">所有代码都已覆盖！</span>
+              <span className="doc-badge-success">所有代码都已覆盖 Fully covered</span>
             )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CoverageRing({ title, percent, covered, total, color }) {
+  return (
+    <div className="doc-panel">
+      <h3 className="text-sm font-medium text-slate-500 mb-4">{title}</h3>
+      <div className="flex items-center justify-center">
+        <div className="relative w-32 h-32">
+          <svg className="w-32 h-32 transform -rotate-90">
+            <circle cx="64" cy="64" r="56" stroke="#e2e8f0" strokeWidth="12" fill="none" />
+            <circle cx="64" cy="64" r="56" stroke={color} strokeWidth="12" fill="none" strokeDasharray={`${percent * 3.52} 352`} strokeLinecap="round" />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-2xl font-semibold text-slate-950">{percent}%</span>
+            <span className="text-xs text-slate-500">{covered}/{total}</span>
           </div>
         </div>
       </div>

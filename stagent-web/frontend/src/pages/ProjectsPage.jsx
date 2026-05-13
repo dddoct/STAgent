@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, FolderKanban, Clock } from 'lucide-react'
+import { Plus, FolderKanban, Clock, ArrowRight } from 'lucide-react'
 import { useProjectStore } from '../stores/projectStore'
 
 export default function ProjectsPage() {
   const navigate = useNavigate()
-  const { projects, createProject, loading } = useProjectStore()
+  const { projects, createProject } = useProjectStore()
   const [showModal, setShowModal] = useState(false)
   const [newProject, setNewProject] = useState({ name: '', description: '' })
 
@@ -20,74 +20,79 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">项目列表</h1>
+    <div className="space-y-6">
+      <div className="doc-toolbar">
+        <div>
+          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Projects</div>
+          <h1 className="text-2xl font-semibold text-slate-950 mt-1">项目列表 Project Index</h1>
+          <p className="text-sm text-slate-500 mt-1">创建并管理你的测试配置与运行任务。</p>
+        </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded transition-colors"
+          className="doc-btn-primary"
         >
           <Plus className="w-4 h-4" />
-          新建项目
+          New Project
         </button>
       </div>
 
       {projects.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <FolderKanban className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-          <h3 className="text-lg font-medium text-gray-600 mb-2">暂无项目</h3>
-          <p className="text-gray-400 mb-6">创建一个新项目开始测试</p>
+        <div className="doc-panel p-12 text-center">
+          <FolderKanban className="w-14 h-14 mx-auto text-slate-300 mb-4" />
+          <h3 className="text-lg font-semibold text-slate-800 mb-2">暂无项目 No projects</h3>
+          <p className="text-slate-500 mb-6">创建一个新项目开始测试。</p>
           <button
             onClick={() => setShowModal(true)}
-            className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded transition-colors"
+            className="doc-btn-primary mx-auto"
           >
-            创建项目
+            创建项目 Create Project
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {projects.map(project => (
-            <div
+            <button
               key={project.id}
               onClick={() => navigate(`/projects/${project.id}`)}
-              className="bg-white rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer p-4"
+              className="doc-card text-left p-5 hover:border-primary-200 hover:shadow-md transition-all group"
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <FolderKanban className="w-5 h-5 text-primary-500" />
-                  <h3 className="font-medium text-gray-800 truncate">{project.name}</h3>
+                <div className="flex items-center gap-2 min-w-0">
+                  <FolderKanban className="w-5 h-5 text-primary-600 flex-shrink-0" />
+                  <h3 className="font-semibold text-slate-950 truncate">{project.name}</h3>
                 </div>
+                <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-primary-600 transition-colors" />
               </div>
 
-              {project.description && (
-                <p className="text-sm text-gray-500 mb-3 line-clamp-2">{project.description}</p>
+              {project.description ? (
+                <p className="text-sm text-slate-500 mb-4 line-clamp-2">{project.description}</p>
+              ) : (
+                <p className="text-sm text-slate-400 mb-4">No description</p>
               )}
 
-              <div className="flex items-center gap-1 text-xs text-gray-400">
+              <div className="flex items-center gap-1 text-xs text-slate-400">
                 <Clock className="w-3 h-3" />
                 {new Date(project.created_at).toLocaleDateString()}
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}
 
-      {/* 新建项目弹窗 */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-            <h2 className="text-xl font-bold mb-4">新建项目</h2>
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="doc-card w-full max-w-md p-6">
+            <h2 className="text-xl font-semibold text-slate-950 mb-1">新建项目 New Project</h2>
+            <p className="text-sm text-slate-500 mb-5">为新的测试任务创建配置容器。</p>
 
             <form onSubmit={handleCreate}>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  项目名称 *
-                </label>
+                <label className="doc-label">项目名称 Name *</label>
                 <input
                   type="text"
                   value={newProject.name}
                   onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="doc-input"
                   placeholder="输入项目名称"
                   required
                   autoFocus
@@ -95,13 +100,11 @@ export default function ProjectsPage() {
               </div>
 
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  描述（可选）
-                </label>
+                <label className="doc-label">描述 Description</label>
                 <textarea
                   value={newProject.description}
                   onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="doc-input"
                   rows={3}
                   placeholder="描述项目用途"
                 />
@@ -111,15 +114,15 @@ export default function ProjectsPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                  className="doc-btn-secondary"
                 >
-                  取消
+                  取消 Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded transition-colors"
+                  className="doc-btn-primary"
                 >
-                  创建
+                  创建 Create
                 </button>
               </div>
             </form>

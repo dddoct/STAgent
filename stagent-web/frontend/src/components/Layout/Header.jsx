@@ -17,13 +17,13 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-      <div className="flex items-center gap-4">
+    <header className="bg-doc-surface border-b border-doc-border px-4 md:px-6 py-3 flex items-center justify-between">
+      <div className="flex items-center gap-4 min-w-0">
         {currentProject && (
-          <div>
-            <h2 className="text-lg font-medium">{currentProject.name}</h2>
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold text-doc-text truncate">{currentProject.name}</h2>
             {currentProject.description && (
-              <p className="text-sm text-gray-500">{currentProject.description}</p>
+              <p className="text-sm text-doc-subtext truncate">{currentProject.description}</p>
             )}
           </div>
         )}
@@ -34,29 +34,29 @@ export default function Header() {
           <>
             <button
               onClick={() => navigate(`/projects/${projectId}/run`)}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
+              className="doc-btn-primary"
             >
               <Play className="w-4 h-4" />
-              运行测试
+              Run Test
             </button>
 
             <button
               onClick={() => navigate(`/projects/${projectId}`)}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+              className="doc-btn-secondary"
             >
-              配置
+              Config
             </button>
           </>
         )}
 
         {user && (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full">
-            <User className="w-4 h-4 text-gray-500" />
-            <span className="text-sm text-gray-600">{user.username}</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-doc-muted rounded-full border border-doc-border">
+            <User className="w-4 h-4 text-doc-subtext" />
+            <span className="text-sm text-doc-subtext">{user.username}</span>
             <button
               onClick={handleLogout}
-              className="ml-2 text-gray-400 hover:text-red-500"
-              title="退出登录"
+              className="ml-1 text-doc-subtext hover:text-doc-danger"
+              title="退出登录 / Logout"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -65,8 +65,8 @@ export default function Header() {
 
         <button
           onClick={() => navigate('/help')}
-          className="p-2 text-gray-500 hover:bg-gray-100 rounded"
-          title="帮助"
+          className="doc-btn-ghost"
+          title="帮助 / Help"
         >
           <HelpCircle className="w-5 h-5" />
         </button>

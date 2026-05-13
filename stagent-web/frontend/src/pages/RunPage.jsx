@@ -7,7 +7,7 @@ import { useRunStore } from '../stores/runStore'
 export default function RunPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { currentProject, fetchProject } = useProjectStore()
+  const { fetchProject } = useProjectStore()
   const {
     status, progress, total, passed, failed, errors, logs, results,
     startRun, stopRun, reset
@@ -16,11 +16,9 @@ export default function RunPage() {
   const [autoScroll, setAutoScroll] = useState(true)
 
   useEffect(() => {
-    if (id) {
-      fetchProject(id)
-    }
+    if (id) fetchProject(id)
     return () => reset()
-  }, [id])
+  }, [id, fetchProject, reset])
 
   const handleStart = async () => {
     await startRun(id)
@@ -31,137 +29,103 @@ export default function RunPage() {
   }
 
   const passRate = total > 0 ? ((passed / total) * 100).toFixed(1) : '0.0'
+  const isRunnable = status === 'idle' || status === 'stopped' || status === 'completed'
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">运行测试</h1>
+    <div className="space-y-6">
+      <div className="doc-toolbar">
+        <div>
+          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Run</div>
+          <h1 className="text-2xl font-semibold text-slate-950 mt-1">运行测试 Test Runner</h1>
+          <p className="text-sm text-slate-500 mt-1">实时查看执行状态、日志与单个用例结果。</p>
+        </div>
 
         <div className="flex items-center gap-2">
-          {status === 'idle' || status === 'stopped' || status === 'completed' ? (
-            <button
-              onClick={handleStart}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
-            >
+          {isRunnable ? (
+            <button onClick={handleStart} className="doc-btn-primary">
               <Play className="w-4 h-4" />
-              开始测试
+              Start Run
             </button>
           ) : (
-            <button
-              onClick={handleStop}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
-            >
+            <button onClick={handleStop} className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors">
               <Square className="w-4 h-4" />
-              停止
+              Stop
             </button>
           )}
 
           {status === 'completed' && (
-            <button
-              onClick={() => navigate(`/reports/${id}`)}
-              className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded transition-colors"
-            >
+            <button onClick={() => navigate(`/reports/${id}`)} className="doc-btn-secondary">
               <FileText className="w-4 h-4" />
-              查看报告
+              View Report
             </button>
           )}
         </div>
       </div>
 
       {status !== 'idle' && (
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="doc-panel space-y-5">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className={`w-3 h-3 rounded-full ${
+              <span className={`w-2.5 h-2.5 rounded-full ${
                 status === 'running' ? 'bg-green-500 animate-pulse' :
-                status === 'completed' ? 'bg-blue-500' :
-                status === 'stopped' ? 'bg-yellow-500' : 'bg-gray-400'
+                status === 'completed' ? 'bg-primary-500' :
+                status === 'stopped' ? 'bg-amber-500' : 'bg-slate-400'
               }`} />
-              <span className="font-medium">
-                {status === 'running' ? '运行中...' :
-                 status === 'completed' ? '已完成' :
-                 status === 'stopped' ? '已停止' : '等待中'}
+              <span className="font-medium text-slate-900">
+                {status === 'running' ? '运行中 Running' :
+                 status === 'completed' ? '已完成 Completed' :
+                 status === 'stopped' ? '已停止 Stopped' : '等待中 Pending'}
               </span>
             </div>
-            <span className="text-sm text-gray-500">
-              {progress} / {total}
-            </span>
+            <span className="text-sm text-slate-500">{progress} / {total}</span>
           </div>
 
-          <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
+          <div className="w-full bg-slate-100 rounded-full h-2.5">
             <div
-              className="bg-primary-600 h-3 rounded-full transition-all duration-300"
+              className="bg-primary-600 h-2.5 rounded-full transition-all duration-300"
               style={{ width: `${total > 0 ? (progress / total) * 100 : 0}%` }}
             />
           </div>
 
-          <div className="grid grid-cols-4 gap-4">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-500" />
-              <div>
-                <div className="text-sm text-gray-500">通过</div>
-                <div className="text-xl font-bold text-green-600">{passed}</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <XCircle className="w-5 h-5 text-red-500" />
-              <div>
-                <div className="text-sm text-gray-500">失败</div>
-                <div className="text-xl font-bold text-red-600">{failed}</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-yellow-500" />
-              <div>
-                <div className="text-sm text-gray-500">错误</div>
-                <div className="text-xl font-bold text-yellow-600">{errors}</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <div>
-                <div className="text-sm text-gray-500">通过率</div>
-                <div className="text-xl font-bold text-primary-600">{passRate}%</div>
-              </div>
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard icon={<CheckCircle className="w-5 h-5 text-green-600" />} label="通过 Passed" value={passed} color="text-green-600" />
+            <StatCard icon={<XCircle className="w-5 h-5 text-red-600" />} label="失败 Failed" value={failed} color="text-red-600" />
+            <StatCard icon={<AlertCircle className="w-5 h-5 text-amber-600" />} label="错误 Errors" value={errors} color="text-amber-600" />
+            <StatCard label="通过率 Pass rate" value={`${passRate}%`} color="text-primary-600" />
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow">
-          <div className="flex items-center justify-between p-4 border-b">
-            <h2 className="font-semibold">实时日志</h2>
-            <label className="flex items-center gap-2 text-sm">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="doc-card overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b border-slate-200">
+            <div>
+              <h2 className="font-semibold text-slate-950">实时日志 Logs</h2>
+              <p className="text-xs text-slate-500 mt-1">WebSocket output stream</p>
+            </div>
+            <label className="flex items-center gap-2 text-sm text-slate-600">
               <input
                 type="checkbox"
                 checked={autoScroll}
                 onChange={(e) => setAutoScroll(e.target.checked)}
-                className="w-4 h-4"
+                className="w-4 h-4 rounded border-slate-300"
               />
-              自动滚动
+              Auto scroll
             </label>
           </div>
 
-          <div className="h-96 overflow-y-auto p-4 bg-gray-900 text-gray-100 font-mono text-sm">
+          <div className="h-96 overflow-y-auto p-4 bg-slate-950 text-slate-100 font-mono text-sm">
             {logs.length === 0 ? (
-              <div className="text-gray-500 text-center py-8">
-                {status === 'idle' ? '点击"开始测试"运行测试' : '等待日志输出...'}
+              <div className="text-slate-500 text-center py-8">
+                {status === 'idle' ? '点击 Start Run 运行测试' : '等待日志输出...'}
               </div>
             ) : (
               logs.map((log, i) => (
                 <div key={i} className="mb-1">
-                  <span className="text-gray-500">
-                    {new Date(log.timestamp).toLocaleTimeString()}
-                  </span>
-                  {' '}
-                  <span className={
-                    log.level === 'error' ? 'text-red-400' :
-                    log.level === 'warning' ? 'text-yellow-400' :
-                    'text-green-400'
-                  }>
+                  <span className="text-slate-500">{new Date(log.timestamp).toLocaleTimeString()}</span>{' '}
+                  <span className={log.level === 'error' ? 'text-red-400' : log.level === 'warning' ? 'text-yellow-400' : 'text-green-400'}>
                     [{log.level.toUpperCase()}]
-                  </span>
-                  {' '}
+                  </span>{' '}
                   <span>{log.message}</span>
                 </div>
               ))
@@ -169,50 +133,49 @@ export default function RunPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow">
-          <div className="flex items-center justify-between p-4 border-b">
-            <h2 className="font-semibold">执行结果</h2>
-            <span className="text-sm text-gray-500">
-              {results.length} 个用例
-            </span>
+        <div className="doc-card overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b border-slate-200">
+            <div>
+              <h2 className="font-semibold text-slate-950">执行结果 Results</h2>
+              <p className="text-xs text-slate-500 mt-1">{results.length} test cases</p>
+            </div>
           </div>
 
           <div className="h-96 overflow-y-auto">
             {results.length === 0 ? (
-              <div className="text-gray-500 text-center py-8">
-                暂无执行结果
-              </div>
+              <div className="text-slate-500 text-center py-8">暂无执行结果 No results</div>
             ) : (
-              <div className="divide-y">
+              <div className="divide-y divide-slate-100">
                 {results.map((result, i) => (
-                  <div
-                    key={i}
-                    className={`p-4 flex items-center gap-3 ${
-                      result.passed ? 'bg-green-50' : 'bg-red-50'
-                    }`}
-                  >
+                  <div key={i} className="p-4 flex items-center gap-3 hover:bg-slate-50 transition-colors">
                     {result.passed ? (
-                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
                     ) : (
-                      <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                      <XCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">
-                        {result.test_case_id}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {result.reason || (result.passed ? '通过' : '失败')}
-                      </div>
+                      <div className="font-medium text-sm text-slate-950 truncate">{result.test_case_id}</div>
+                      <div className="text-xs text-slate-500">{result.reason || (result.passed ? '通过 Passed' : '失败 Failed')}</div>
                     </div>
-                    <div className="text-xs text-gray-400">
-                      {result.duration}s
-                    </div>
+                    <div className="text-xs text-slate-400">{result.duration}s</div>
                   </div>
                 ))}
               </div>
             )}
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function StatCard({ icon, label, value, color }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 flex items-center gap-3">
+      {icon}
+      <div>
+        <div className="text-sm text-slate-500">{label}</div>
+        <div className={`text-xl font-semibold ${color}`}>{value}</div>
       </div>
     </div>
   )
