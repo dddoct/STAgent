@@ -6,6 +6,7 @@ import RunPage from './pages/RunPage'
 import ReportPage from './pages/ReportPage'
 import CoveragePage from './pages/CoveragePage'
 import LoginPage from './pages/LoginPage'
+import HelpPage from './pages/HelpPage'
 import { useAuthStore } from './stores/authStore'
 
 function ProtectedRoute({ children }) {
@@ -30,6 +31,7 @@ function App() {
           </ProtectedRoute>
         }>
           <Route index element={<ProjectsPage />} />
+          <Route path="help" element={<HelpPage />} />
           <Route path="projects/:id" element={<ConfigPage />} />
           <Route path="projects/:id/run" element={<RunPage />} />
           <Route path="reports/:id" element={<ReportPage />} />

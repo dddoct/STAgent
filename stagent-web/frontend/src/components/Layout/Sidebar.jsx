@@ -18,11 +18,13 @@ export default function Sidebar({ projects }) {
     <aside className="w-64 bg-gray-800 text-white flex flex-col">
       {/* Logo */}
       <div className="p-4 border-b border-gray-700">
-        <h1 className="text-xl font-bold flex items-center gap-2">
-          <Settings className="w-6 h-6 text-primary-400" />
-          STAgent
-        </h1>
-        <p className="text-xs text-gray-400 mt-1">软件测试智能体</p>
+        <button onClick={() => navigate('/')} className="text-left group">
+          <h1 className="text-xl font-bold flex items-center gap-2 group-hover:text-primary-300 transition-colors">
+            <Settings className="w-6 h-6 text-primary-400" />
+            STAgent
+          </h1>
+          <p className="text-xs text-gray-400 mt-1 group-hover:text-gray-300 transition-colors">软件测试智能体</p>
+        </button>
       </div>
 
       {/* 新建按钮 */}

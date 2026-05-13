@@ -49,7 +49,6 @@ export default function Header() {
           </>
         )}
 
-        {/* 用户信息 */}
         {user && (
           <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full">
             <User className="w-4 h-4 text-gray-500" />
@@ -65,6 +64,7 @@ export default function Header() {
         )}
 
         <button
+          onClick={() => navigate('/help')}
           className="p-2 text-gray-500 hover:bg-gray-100 rounded"
           title="帮助"
         >
