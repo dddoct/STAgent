@@ -1,16 +1,20 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate, useParams } from 'react-router-dom'
 import { FolderKanban, Plus, Trash2, Settings } from 'lucide-react'
 import { useProjectStore } from '../../stores/projectStore'
 
 export default function Sidebar({ projects }) {
   const navigate = useNavigate()
+  const params = useParams()
   const { deleteProject } = useProjectStore()
 
   const handleDelete = async (e, projectId) => {
     e.preventDefault()
     e.stopPropagation()
     if (confirm('确定要删除这个项目吗？')) {
-      await deleteProject(projectId)
+      const deleted = await deleteProject(projectId)
+      if (deleted && params.id === projectId) {
+        navigate('/')
+      }
     }
   }
 

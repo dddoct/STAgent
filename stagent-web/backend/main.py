@@ -71,6 +71,10 @@ class Project(BaseModel):
     config_yaml: str = ""
     created_at: str
     updated_at: str
+    last_run_task_id: Optional[str] = None
+    last_run_status: Optional[str] = None
+    last_run_at: Optional[str] = None
+    last_run_pass_rate: Optional[str] = None
 
 class ProjectCreate(BaseModel):
     name: str
@@ -85,6 +89,9 @@ class ProjectUpdate(BaseModel):
 class RunRequest(BaseModel):
     project_id: str
     config_overrides: Optional[Dict[str, Any]] = None
+
+class PreviewInputsRequest(BaseModel):
+    count: int = 5
 
 class RunStatus(BaseModel):
     task_id: str
@@ -121,6 +128,36 @@ def load_projects():
                 projects[project.id] = project
         except Exception as e:
             print(f"加载项目失败 {path}: {e}")
+
+def update_project_run(project_id: str, status: str, task_id: Optional[str] = None, pass_rate: Optional[str] = None):
+    """更新项目最近运行信息"""
+    if project_id not in projects:
+        return
+    project = projects[project_id]
+    if task_id is not None:
+        project.last_run_task_id = task_id
+    project.last_run_status = status
+    project.last_run_at = datetime.now().isoformat()
+    if pass_rate is not None:
+        project.last_run_pass_rate = pass_rate
+    project.updated_at = datetime.now().isoformat()
+    save_project(project)
+
+
+def summarize_report(data: Dict[str, Any]) -> Dict[str, Any]:
+    """提取报告摘要"""
+    return {
+        "report_id": data.get("report_id"),
+        "task_id": data.get("task_id"),
+        "project_id": data.get("project_id"),
+        "project_name": data.get("project_name"),
+        "created_at": data.get("created_at"),
+        "total": data.get("total", 0),
+        "passed": data.get("passed", 0),
+        "failed": data.get("failed", 0),
+        "errors": data.get("errors", 0),
+        "pass_rate": data.get("summary", {}).get("pass_rate", "0.0%")
+    }
 
 async def broadcast(task_id: str, message: Dict[str, Any]):
     """广播消息到所有连接的客户端"""
@@ -210,6 +247,87 @@ async def delete_project(project_id: str):
     del projects[project_id]
     return {"message": "删除成功"}
 
+@app.get("/api/projects/{project_id}/reports")
+async def get_project_reports(project_id: str):
+    """获取项目报告历史"""
+    if project_id not in projects:
+        raise HTTPException(status_code=404, detail="项目不存在")
+
+    reports = []
+    for path in REPORTS_DIR.glob("*.json"):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if data.get("project_id") == project_id:
+                reports.append(summarize_report(data))
+        except Exception as e:
+            logger.warning(f"读取报告失败 {path}: {e}")
+
+    reports.sort(key=lambda item: item.get("created_at") or "", reverse=True)
+    return reports
+
+@app.post("/api/projects/{project_id}/preview-inputs")
+async def preview_project_inputs(project_id: str, request: PreviewInputsRequest):
+    """预览生成的测试输入，不执行程序"""
+    if project_id not in projects:
+        raise HTTPException(status_code=404, detail="项目不存在")
+
+    project = projects[project_id]
+    temp_config_path = DATA_DIR / f"preview_{uuid.uuid4().hex[:8]}.yaml"
+    try:
+        with open(temp_config_path, "w", encoding="utf-8") as f:
+            f.write(project.config_yaml)
+
+        config = load_config(str(temp_config_path))
+        config.generation.count = max(1, min(request.count, 20))
+        orchestrator = TestOrchestrator(config)
+        test_cases = orchestrator.generator.generate()[:request.count]
+
+        items = []
+        for i, test_case in enumerate(test_cases):
+            input_data = getattr(test_case, "input_data", getattr(test_case, "input", ""))
+            rendered = getattr(test_case, "input", input_data)
+            if config.wrapper.mode == "args":
+                args = str(rendered).split() if isinstance(rendered, str) else list(input_data.values()) if isinstance(input_data, dict) else [str(rendered)]
+                stdin = ""
+            else:
+                args = []
+                stdin = str(rendered)
+            items.append({
+                "id": getattr(test_case, "id", f"TC_{i:04d}"),
+                "input": input_data,
+                "args": args,
+                "stdin": stdin
+            })
+        return {"items": items, "total_generated": len(items)}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"生成输入预览失败: {str(e)}")
+    finally:
+        if temp_config_path.exists():
+            temp_config_path.unlink()
+
+@app.get("/api/examples")
+async def list_examples():
+    """获取内置示例项目列表"""
+    return [
+        {"id": key, "name": value["name"], "description": value["description"], "category": value["category"]}
+        for key, value in get_example_projects().items()
+    ]
+
+@app.post("/api/examples/{example_id}/import", response_model=Project)
+async def import_example(example_id: str):
+    """导入示例项目"""
+    examples = get_example_projects()
+    if example_id not in examples:
+        raise HTTPException(status_code=404, detail="示例不存在")
+
+    example = examples[example_id]
+    return await create_project(ProjectCreate(
+        name=example["name"],
+        description=example["description"],
+        config_yaml=example["config_yaml"]
+    ))
+
 # ============== 测试运行 API ==============
 
 @app.post("/api/run", response_model=RunStatus)
@@ -240,6 +358,7 @@ async def start_run(request: RunRequest):
 
     # 异步执行测试
     asyncio.create_task(run_test(task_id, request.project_id, request.config_overrides))
+    update_project_run(request.project_id, "running", task_id)
 
     return RunStatus(**tasks[task_id])
 
@@ -258,6 +377,7 @@ async def stop_run(task_id: str):
 
     tasks[task_id]["status"] = "stopped"
     tasks[task_id]["ended_at"] = datetime.now().isoformat()
+    update_project_run(tasks[task_id]["project_id"], "stopped", task_id)
 
     return {"message": "任务已停止"}
 
@@ -415,6 +535,7 @@ async def run_test(task_id: str, project_id: str, config_overrides: Optional[Dic
             await broadcast(task_id, {"type": "log", "level": "error", "message": f"配置解析失败: {str(e)}"})
             task["status"] = "error"
             task["ended_at"] = datetime.now().isoformat()
+            update_project_run(project_id, "error", task_id)
             await broadcast(task_id, {"type": "error", "message": str(e)})
             return
 
@@ -427,6 +548,7 @@ async def run_test(task_id: str, project_id: str, config_overrides: Optional[Dic
             await broadcast(task_id, {"type": "log", "level": "error", "message": f"引擎初始化失败: {str(e)}"})
             task["status"] = "error"
             task["ended_at"] = datetime.now().isoformat()
+            update_project_run(project_id, "error", task_id)
             await broadcast(task_id, {"type": "error", "message": str(e)})
             return
 
@@ -441,6 +563,7 @@ async def run_test(task_id: str, project_id: str, config_overrides: Optional[Dic
             await broadcast(task_id, {"type": "log", "level": "error", "message": f"用例生成失败: {str(e)}"})
             task["status"] = "error"
             task["ended_at"] = datetime.now().isoformat()
+            update_project_run(project_id, "error", task_id)
             await broadcast(task_id, {"type": "error", "message": str(e)})
             return
 
@@ -522,6 +645,7 @@ async def run_test(task_id: str, project_id: str, config_overrides: Optional[Dic
 
         # 生成报告
         report = orchestrator.analyzer.generate_report(results)
+        update_project_run(project_id, "completed", task_id, report.summary.get("pass_rate", "0.0%"))
 
         # 保存报告
         report_data = {
@@ -579,10 +703,141 @@ async def run_test(task_id: str, project_id: str, config_overrides: Optional[Dic
         traceback.print_exc()
         task["status"] = "error"
         task["ended_at"] = datetime.now().isoformat()
+        update_project_run(project_id, "error", task_id)
         await broadcast(task_id, {"type": "log", "level": "error", "message": f"执行异常: {str(e)}"})
         await broadcast(task_id, {"type": "error", "message": str(e)})
 
 # ============== 辅助函数 ==============
+
+def get_example_projects() -> Dict[str, Dict[str, str]]:
+    """内置示例项目"""
+    project_root = ROOT.parent
+    examples_dir = project_root / "examples"
+    results_dir = project_root / "results"
+    results_dir.mkdir(exist_ok=True)
+
+    def yaml_path(path: Path) -> str:
+        return path.resolve().as_posix()
+
+    def yaml_for(program: str, wrapper: str, assertions: str, count: int = 10) -> str:
+        return f'''target:
+  program: "{yaml_path(examples_dir / program)}"
+  timeout: 10
+
+wrapper:
+  enabled: true
+{wrapper}
+
+analysis:
+  compare_mode: "fuzzy"
+  report_format: "json"
+  default_assertions:
+{assertions}
+  deduplication:
+    enabled: true
+  coverage:
+    enabled: false
+
+generation:
+  strategy: "wrapper"
+  count: {count}
+
+output:
+  report_path: "{yaml_path(results_dir / "report.json")}"
+  log_level: "INFO"
+'''
+
+    return {
+        "add": {
+            "name": "示例：两数相加 Add",
+            "description": "命令行参数模式，测试两个浮点数相加并校验退出码。",
+            "category": "math",
+            "config_yaml": yaml_for(
+                "math/add.exe",
+                '''  mode: "args"
+  input_schema:
+    - name: num1
+      type: "float"
+      range_min: -100
+      range_max: 100
+    - name: num2
+      type: "float"
+      range_min: -100
+      range_max: 100''',
+                '''    - type: "exit_code"
+      expected: 0'''
+            )
+        },
+        "divide": {
+            "name": "示例：除法 Divide",
+            "description": "覆盖正常除法与除零错误，多退出码断言。",
+            "category": "math",
+            "config_yaml": yaml_for(
+                "math/divide.exe",
+                '''  mode: "args"
+  input_schema:
+    - name: dividend
+      type: "float"
+      range_min: -100
+      range_max: 100
+    - name: divisor
+      type: "float"
+      range_min: -5
+      range_max: 5''',
+                '''    - type: "exit_code"
+      expected: [0, 2]'''
+            )
+        },
+        "sort": {
+            "name": "示例：排序 Sort",
+            "description": "标准输入模式，生成整数列表并验证程序无错误。",
+            "category": "basic",
+            "config_yaml": yaml_for(
+                "math/sort.exe",
+                '''  mode: "stdin"
+  input_schema:
+    - name: numbers
+      type: "list[int]"
+      count_fixed: 5
+      range_min: -100
+      range_max: 100
+      separator: "\\n"''',
+                '''    - type: "no_error"'''
+            )
+        },
+        "validate": {
+            "name": "示例：参数验证 Validate",
+            "description": "错误处理示例，验证多个退出码是否符合预期。",
+            "category": "error_handling",
+            "config_yaml": yaml_for(
+                "error_handling/validate.exe",
+                '''  mode: "args"
+  input_schema:
+    - name: number
+      type: "int"
+      range_min: -10
+      range_max: 150''',
+                '''    - type: "exit_code"
+      expected: [0, 1, 2, 3]'''
+            )
+        },
+        "palindrome": {
+            "name": "示例：回文 Palindrome",
+            "description": "字符串处理示例，生成文本参数并检查程序正常返回。",
+            "category": "string",
+            "config_yaml": yaml_for(
+                "string/palindrome.exe",
+                '''  mode: "args"
+  input_schema:
+    - name: text
+      type: "string"
+      values: ["racecar", "hello", "level", "test"]''',
+                '''    - type: "exit_code"
+      expected: [0, 1]'''
+            )
+        }
+    }
+
 
 def get_default_config() -> str:
     """获取默认配置模板"""
@@ -592,8 +847,11 @@ def get_default_config() -> str:
     results_dir = project_root / "results"
     results_dir.mkdir(exist_ok=True)
 
+    def yaml_path(path: Path) -> str:
+        return path.resolve().as_posix()
+
     return f'''target:
-  program: "{examples_dir / "sort.exe"}"
+  program: "{yaml_path(examples_dir / "sort.exe")}"
   timeout: 10
 
 wrapper:
@@ -623,7 +881,7 @@ generation:
   count: 10
 
 output:
-  report_path: "{results_dir / "report.json"}"
+  report_path: "{yaml_path(results_dir / "report.json")}"
   log_level: "INFO"
 '''
 

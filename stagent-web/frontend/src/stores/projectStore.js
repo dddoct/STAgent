@@ -1,9 +1,12 @@
 import { create } from 'zustand'
-import { projectApi } from '../api/client'
+import { exampleApi, projectApi } from '../api/client'
 
 export const useProjectStore = create((set, get) => ({
   projects: [],
   currentProject: null,
+  reportHistory: [],
+  examples: [],
+  inputPreview: null,
   loading: false,
   error: null,
 
@@ -79,6 +82,55 @@ export const useProjectStore = create((set, get) => ({
     } catch (error) {
       set({ error: error.message, loading: false })
       return false
+    }
+  },
+
+  fetchReportHistory: async (id) => {
+    try {
+      const reportHistory = await projectApi.reports(id)
+      set({ reportHistory })
+      return reportHistory
+    } catch (error) {
+      set({ error: error.message, reportHistory: [] })
+      return []
+    }
+  },
+
+  previewInputs: async (id, count = 5) => {
+    try {
+      const inputPreview = await projectApi.previewInputs(id, count)
+      set({ inputPreview })
+      return inputPreview
+    } catch (error) {
+      set({ error: error.response?.data?.detail || error.message, inputPreview: null })
+      return null
+    }
+  },
+
+  fetchExamples: async () => {
+    try {
+      const examples = await exampleApi.list()
+      set({ examples })
+      return examples
+    } catch (error) {
+      set({ error: error.message, examples: [] })
+      return []
+    }
+  },
+
+  importExample: async (exampleId) => {
+    set({ loading: true, error: null })
+    try {
+      const project = await exampleApi.import(exampleId)
+      set(state => ({
+        projects: [...state.projects, project],
+        currentProject: project,
+        loading: false
+      }))
+      return project
+    } catch (error) {
+      set({ error: error.response?.data?.detail || error.message, loading: false })
+      return null
     }
   },
 

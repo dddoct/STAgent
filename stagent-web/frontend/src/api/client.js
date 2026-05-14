@@ -67,7 +67,11 @@ export const projectApi = {
 
   update: (id, data) => client.put(`/projects/${id}`, data),
 
-  delete: (id) => client.delete(`/projects/${id}`)
+  delete: (id) => client.delete(`/projects/${id}`),
+
+  reports: (id) => client.get(`/projects/${id}/reports`),
+
+  previewInputs: (id, count = 5) => client.post(`/projects/${id}/preview-inputs`, { count })
 }
 
 // ============== 测试运行 API ==============
@@ -115,6 +119,14 @@ export const uploadApi = {
       headers: { 'Content-Type': 'multipart/form-data' }
     }).then(res => res.data)
   }
+}
+
+// ============== 示例项目 API ==============
+
+export const exampleApi = {
+  list: () => client.get('/examples'),
+
+  import: (exampleId) => client.post(`/examples/${exampleId}/import`)
 }
 
 export default client

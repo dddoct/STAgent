@@ -122,7 +122,7 @@ def load_config(path: str) -> Config:
     wrapper_cfg = WrapperConfig(
         enabled=wrapper_data.get("enabled", False),
         mode=wrapper_data.get("mode", "stdin"),
-        input_schema=wrapper_data.get("schema", [])
+        input_schema=wrapper_data.get("input_schema", wrapper_data.get("schema", []))
     )
 
     # 加载 suite 配置（预设用例）
