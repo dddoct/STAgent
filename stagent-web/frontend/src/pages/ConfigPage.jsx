@@ -4,6 +4,21 @@ import { Save, Play, Eye, Code, ChevronRight } from 'lucide-react'
 import { useProjectStore } from '../stores/projectStore'
 import YAML from 'yaml'
 
+function Section({ title, subtitle, children }) {
+  return (
+    <section className="doc-panel space-y-4">
+      <div className="flex items-start gap-2">
+        <ChevronRight className="w-5 h-5 text-primary-600 mt-0.5" />
+        <div>
+          <h2 className="text-lg font-semibold text-slate-950">{title}</h2>
+          {subtitle && <p className="text-sm text-slate-500 mt-1">{subtitle}</p>}
+        </div>
+      </div>
+      {children}
+    </section>
+  )
+}
+
 export default function ConfigPage() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -75,19 +90,6 @@ export default function ConfigPage() {
     setHasChanges(true)
   }
 
-  const Section = ({ title, subtitle, children }) => (
-    <section className="doc-panel space-y-4">
-      <div className="flex items-start gap-2">
-        <ChevronRight className="w-5 h-5 text-primary-600 mt-0.5" />
-        <div>
-          <h2 className="text-lg font-semibold text-slate-950">{title}</h2>
-          {subtitle && <p className="text-sm text-slate-500 mt-1">{subtitle}</p>}
-        </div>
-      </div>
-      {children}
-    </section>
-  )
-
   return (
     <div className="space-y-6">
       <div className="doc-toolbar">
@@ -144,8 +146,8 @@ export default function ConfigPage() {
                 <label className="doc-label">超时时间 Timeout (s)</label>
                 <input
                   type="number"
-                  value={form.target?.timeout || 10}
-                  onChange={(e) => handleFieldChange('target.timeout', parseInt(e.target.value))}
+                  value={form.target?.timeout ?? ''}
+                  onChange={(e) => handleFieldChange('target.timeout', e.target.value === '' ? '' : parseInt(e.target.value, 10))}
                   className="doc-input"
                 />
               </div>
@@ -201,8 +203,8 @@ export default function ConfigPage() {
                 <label className="doc-label">用例数量 Count</label>
                 <input
                   type="number"
-                  value={form.generation?.count || 10}
-                  onChange={(e) => handleFieldChange('generation.count', parseInt(e.target.value))}
+                  value={form.generation?.count ?? ''}
+                  onChange={(e) => handleFieldChange('generation.count', e.target.value === '' ? '' : parseInt(e.target.value, 10))}
                   className="doc-input"
                 />
               </div>

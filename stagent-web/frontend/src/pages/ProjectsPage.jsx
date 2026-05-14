@@ -1,13 +1,17 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, FolderKanban, Clock, ArrowRight } from 'lucide-react'
 import { useProjectStore } from '../stores/projectStore'
 
 export default function ProjectsPage() {
   const navigate = useNavigate()
-  const { projects, createProject } = useProjectStore()
+  const { projects, createProject, clearCurrentProject } = useProjectStore()
   const [showModal, setShowModal] = useState(false)
   const [newProject, setNewProject] = useState({ name: '', description: '' })
+
+  useEffect(() => {
+    clearCurrentProject()
+  }, [clearCurrentProject])
 
   const handleCreate = async (e) => {
     e.preventDefault()
