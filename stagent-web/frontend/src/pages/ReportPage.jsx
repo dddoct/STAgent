@@ -43,6 +43,19 @@ export default function ReportPage() {
     setLoading(false)
   }
 
+  const handleExport = () => {
+    if (!report) return
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${report.report_id || id}-report.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   const filteredResults = report?.results?.filter(r => {
     if (filter === 'passed') return r.passed
     if (filter === 'failed') return !r.passed && r.status === 'success'
@@ -66,7 +79,7 @@ export default function ReportPage() {
           <h1 className="text-2xl font-semibold text-slate-950 mt-1">测试报告 Test Report</h1>
           <p className="text-sm text-slate-500 mt-1">{report.project_name} · {new Date(report.created_at).toLocaleString()}</p>
         </div>
-        <button className="doc-btn-secondary">
+        <button onClick={handleExport} className="doc-btn-secondary">
           <Download className="w-4 h-4" />
           Export
         </button>
